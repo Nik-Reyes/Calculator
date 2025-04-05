@@ -1,11 +1,50 @@
 const handleButtonType = (e) => {
   if (e.target.closest("button")) {
-    const expression = document.querySelector(".current-expression");
-    console.log(expression);
-    const buttontext = e.target.innerText;
-    expression.innerText += buttonText;
+    const buttonType = e.target.innerText;
+    if (buttonType !== "AC" && buttonType !== "DEL") {
+      updateExpressionDisplay(buttonType);
+    }
+    if (e.target.innerText === "AC") resetDisplay();
+    if (e.target.innerText === "DEL") deleteLastEntry();
   }
 };
+
+function updateExpressionDisplay(buttonText) {
+  const expressionDisplay = document.querySelector(".current-expression");
+  console.log(expressionDisplay);
+  expressionDisplay.innerText += buttonText;
+}
+
+function resetDisplay() {
+  const initialState = ["", "0"];
+  Array.from(document.querySelector(".display-container").childNodes).forEach(
+    (partition, i) => {
+      partition.innerText = initialState[i];
+    }
+  );
+  console.log("hi");
+}
+
+function resetExpressionDisplay() {
+  document.querySelector(".display-container .current-expression").innerText =
+    "";
+}
+
+function deleteLastEntry() {
+  const currentExpression = document
+    .querySelector(".current-expression")
+    .innerText.slice(0, -1);
+
+  resetExpressionDisplay();
+  updateExpressionDisplay(currentExpression);
+}
+
+// need to update display
+// need to implement AC function
+// need to implement DEL function
+// need to update result
+// need to calculate
+// when parsing the numbers
 
 function createCalculator(rows = 4, cols = 4) {
   // attach all elements to the fragment, and at the end, append the fragment to the
