@@ -55,6 +55,8 @@ button {
   justify-content: center;
   align-items: center;
   font-size: clamp(1rem, 2vw, 3rem);
+  user-select: none;
+  cursor: pointer;
 }
 
 .digit-button {
