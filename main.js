@@ -1,4 +1,4 @@
-const handleButtonType = (e) => {
+const handleButtonClick = (e) => {
   if (e.target.closest("button")) {
     const expression = document.querySelector(".current-expression");
     const calculator = document.querySelector(".calculator-container");
@@ -32,14 +32,14 @@ const handleButtonType = (e) => {
         if (buttonType === "." && lastChar === ".") return;
 
         const deleteButton = document.querySelector("#delete");
-        deleteButton.addEventListener("click", deleteLastEntry);
+        deleteButton.addEventListener("click", deleteLastCharacter);
         updateExpressionDisplay(buttonType);
       }
     }
   }
 };
 
-function evalExpression(op, numArr) {
+function performOperation(op, numArr) {
   if (numArr[1] === "0") {
     document.querySelector(".calculator-container").remove();
     return null;
@@ -62,13 +62,13 @@ function evalExpression(op, numArr) {
   return result;
 }
 
-function getLhsRhs(opIdx, numbers) {
+function getOperands(opIdx, numbers) {
   const lhs = Number(numbers.at(opIdx));
   const rhs = Number(numbers.at(opIdx + 1));
   return [lhs, rhs];
 }
 
-function getResult(arr1, arr2, op1, op2) {
+function evaluateNextOperation(arr1, arr2, op1, op2) {
   let opIdx = 0;
   let result = 0;
   if (arr1.indexOf(op1) === -1) {
@@ -80,8 +80,7 @@ function getResult(arr1, arr2, op1, op2) {
   } else {
     opIdx = arr1.indexOf(op2);
   }
-  result = evalExpression(arr1.at(opIdx), getLhsRhs(opIdx, arr2));
-  console.log(result);
+  result = performOperation(arr1.at(opIdx), getOperands(opIdx, arr2));
   if (result === null) {
     return null;
   }
@@ -89,16 +88,15 @@ function getResult(arr1, arr2, op1, op2) {
   arr1.splice(opIdx, 1);
 }
 
-function evaluate() {
+function calculateResult() {
   let expressionElement = document.querySelector(".current-expression");
   let equation = expressionElement.innerText;
   if (!equation.length > 0) {
     return;
   }
-  console.log(equation);
   document
     .querySelector("#delete")
-    .removeEventListener("click", deleteLastEntry);
+    .removeEventListener("click", deleteLastCharacter);
   const result = document.querySelector(".result");
   const numberList = equation.match(/[\d]+/g);
   const operatorList = equation.split("").filter((element) => isNaN(element));
@@ -107,9 +105,9 @@ function evaluate() {
 
   for (let i = 0; i <= opListLength; i++) {
     if (operatorList.includes("÷") || operatorList.includes("×")) {
-      total = getResult(operatorList, numberList, "÷", "×");
+      total = evaluateNextOperation(operatorList, numberList, "÷", "×");
     } else if (operatorList.includes("+") || operatorList.includes("-")) {
-      total = getResult(operatorList, numberList, "+", "-");
+      total = evaluateNextOperation(operatorList, numberList, "+", "-");
     }
   }
   if (total === null) {
@@ -129,7 +127,7 @@ function updateExpressionDisplay(buttonText) {
   expressionDisplay.innerText += buttonText;
 }
 
-function resetDisplay() {
+function resetCalculator() {
   const expression = document.querySelector(".current-expression");
   const result = document.querySelector(".result");
   if (expression) expression.innerText = "";
@@ -138,7 +136,7 @@ function resetDisplay() {
     "false";
 }
 
-function deleteLastEntry() {
+function deleteLastCharacter() {
   const currentExpression = document.querySelector(".current-expression");
   if (
     currentExpression.innerText !== "" &&
@@ -254,14 +252,13 @@ function createCalculator(rows = 4, cols = 4) {
   );
   buttonContainer.className = "button-container";
   buttonContainer.appendChild(buttonContainerFragment);
-  buttonContainer.addEventListener("click", handleButtonType);
+  buttonContainer.addEventListener("click", handleButtonClick);
   const equalsButton = Array.from(buttonContainer.lastChild.childNodes).filter(
     (button) => button.id === "equals"
   )[0];
-  equalsButton.addEventListener("click", evaluate);
+  equalsButton.addEventListener("click", calculateResult);
   const allClear = clearRow.lastChild;
-  console.log(allClear);
-  allClear.addEventListener("click", resetDisplay);
+  allClear.addEventListener("click", resetCalculator);
   calculatorContainer.append(calculatorDisplay, buttonContainer);
   body.appendChild(calculatorContainer);
 }
