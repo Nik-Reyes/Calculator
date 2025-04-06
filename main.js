@@ -29,25 +29,21 @@ const handleButtonType = (e) => {
         ) {
           return;
         }
-        if (buttonType === "." && lastChar === ".") {
-          return;
-        }
+        if (buttonType === "." && lastChar === ".") return;
+
         const deleteButton = document.querySelector("#delete");
         deleteButton.addEventListener("click", deleteLastEntry);
         updateExpressionDisplay(buttonType);
       }
-      switch (buttonType) {
-        case "AC":
-          resetDisplay();
-          calculator.dataset.equalsPressed = "false";
-          break;
-      }
     }
-    calculator.dataset.equalsPressed;
   }
 };
 
 function evalExpression(op, numArr) {
+  if (numArr[1] === "0") {
+    document.querySelector(".calculator-container").remove();
+    return null;
+  }
   let result = 0;
   switch (op) {
     case "+":
@@ -66,10 +62,31 @@ function evalExpression(op, numArr) {
   return result;
 }
 
-function getNumbers(opIdx, numbers) {
-  const lhs = numbers.at(opIdx);
-  const rhs = numbers.at(opIdx + 1);
+function getLhsRhs(opIdx, numbers) {
+  const lhs = Number(numbers.at(opIdx));
+  const rhs = Number(numbers.at(opIdx + 1));
   return [lhs, rhs];
+}
+
+function getResult(arr1, arr2, op1, op2) {
+  let opIdx = 0;
+  let result = 0;
+  if (arr1.indexOf(op1) === -1) {
+    opIdx = arr1.indexOf(op2);
+  } else if (arr1.indexOf(op2) === -1) {
+    opIdx = arr1.indexOf(op1);
+  } else if (arr1.indexOf(op1) < arr1.indexOf(op2)) {
+    opIdx = arr1.indexOf(op1);
+  } else {
+    opIdx = arr1.indexOf(op2);
+  }
+  result = evalExpression(arr1.at(opIdx), getLhsRhs(opIdx, arr2));
+  console.log(result);
+  if (result === null) {
+    return null;
+  }
+  arr2.splice(opIdx, 2, result);
+  arr1.splice(opIdx, 1);
 }
 
 function evaluate() {
@@ -78,57 +95,30 @@ function evaluate() {
   if (!equation.length > 0) {
     return;
   }
-  const deleteButton = document.querySelector("#delete");
-  deleteButton.removeEventListener("click", deleteLastEntry);
+  console.log(equation);
+  document
+    .querySelector("#delete")
+    .removeEventListener("click", deleteLastEntry);
   const result = document.querySelector(".result");
-  const numbers = equation.match(/[\d]+/g);
+  const numberList = equation.match(/[\d]+/g);
   const operatorList = equation.split("").filter((element) => isNaN(element));
-  operatorList;
-  numbers;
+  const opListLength = operatorList.length; //Need a constant length to run loop because opList is being spliced
+  let total = 0;
 
-  const tNumbers = numbers ? numbers.map((n) => parseInt(n)) : 0;
-  const tOpList = operatorList.slice();
-  for (let i = 0; i < operatorList.length; i++) {
-    let operatorIndex = 0;
-    let result = 0;
-    if (tOpList.includes("÷") || tOpList.includes("×")) {
-      if (tOpList.indexOf("÷") === -1) {
-        operatorIndex = tOpList.indexOf("×");
-      } else if (tOpList.indexOf("×") === -1) {
-        operatorIndex = tOpList.indexOf("÷");
-      } else if (tOpList.indexOf("÷") < tOpList.indexOf("×")) {
-        operatorIndex = tOpList.indexOf("÷");
-      } else {
-        operatorIndex = tOpList.indexOf("×");
-      }
-      result = evalExpression(
-        tOpList.at(operatorIndex),
-        getNumbers(operatorIndex, tNumbers)
-      );
-      tNumbers.splice(operatorIndex, 2, result);
-      tOpList.splice(operatorIndex, 1);
-    } else if (tOpList.includes("+") || tOpList.includes("-")) {
-      if (tOpList.indexOf("+") === -1) {
-        operatorIndex = tOpList.indexOf("-");
-      } else if (tOpList.indexOf("-") === -1) {
-        operatorIndex = tOpList.indexOf("+");
-      } else if (tOpList.indexOf("+") < tOpList.indexOf("-")) {
-        operatorIndex = tOpList.indexOf("+");
-      } else {
-        operatorIndex = tOpList.indexOf("-");
-      }
-      result = evalExpression(
-        tOpList.at(operatorIndex),
-        getNumbers(operatorIndex, tNumbers)
-      );
-      tNumbers.splice(operatorIndex, 2, result);
-      tOpList.splice(operatorIndex, 1);
+  for (let i = 0; i <= opListLength; i++) {
+    if (operatorList.includes("÷") || operatorList.includes("×")) {
+      total = getResult(operatorList, numberList, "÷", "×");
+    } else if (operatorList.includes("+") || operatorList.includes("-")) {
+      total = getResult(operatorList, numberList, "+", "-");
     }
   }
-  const calculation =
-    Math.round((Number(tNumbers.join("")) + Number.EPSILON) * 1000) / 1000;
-  expressionElement.innerText = calculation;
-  result.innerText = calculation;
+  if (total === null) {
+    return;
+  }
+  const rounded =
+    Math.round((Number(numberList.join("")) + Number.EPSILON) * 1000) / 1000;
+  expressionElement.innerText = rounded;
+  result.innerText = rounded;
 
   document.querySelector(".calculator-container").dataset.equalsPressed =
     "true";
@@ -142,9 +132,10 @@ function updateExpressionDisplay(buttonText) {
 function resetDisplay() {
   const expression = document.querySelector(".current-expression");
   const result = document.querySelector(".result");
-
   if (expression) expression.innerText = "";
   if (result) result.innerText = "0";
+  document.querySelector(".calculator-container").dataset.equalsPressed =
+    "false";
 }
 
 function deleteLastEntry() {
@@ -153,7 +144,6 @@ function deleteLastEntry() {
     currentExpression.innerText !== "" &&
     currentExpression.innerText.length > 0
   ) {
-    ("hi");
     currentExpression.innerText = currentExpression.innerText.slice(0, -1);
   }
 }
@@ -269,6 +259,9 @@ function createCalculator(rows = 4, cols = 4) {
     (button) => button.id === "equals"
   )[0];
   equalsButton.addEventListener("click", evaluate);
+  const allClear = clearRow.lastChild;
+  console.log(allClear);
+  allClear.addEventListener("click", resetDisplay);
   calculatorContainer.append(calculatorDisplay, buttonContainer);
   body.appendChild(calculatorContainer);
 }
