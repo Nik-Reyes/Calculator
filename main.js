@@ -1,13 +1,3 @@
-// to do
-// Implement the calculations
-
-// handleButtonType is the junction for all calculations
-// with a switch case I can determine what happens if a certain type of button is pressed
-//
-
-// parsing edge cases
-// prevent 8+ followed by the user pressing the equals sign (do nothing)
-
 const handleButtonType = (e) => {
   if (e.target.closest("button")) {
     const expression = document.querySelector(".current-expression");
@@ -40,9 +30,6 @@ const handleButtonType = (e) => {
         case "AC":
           resetDisplay();
           break;
-        case "DEL":
-          deleteLastEntry();
-          break;
         case "=":
           evaluate();
           break;
@@ -51,15 +38,82 @@ const handleButtonType = (e) => {
   }
 };
 
+function evalExpression(op, numArr) {
+  let result = 0;
+  switch (op) {
+    case "+":
+      result = numArr[0] + numArr[1];
+      break;
+    case "-":
+      result = numArr[0] - numArr[1];
+      break;
+    case "÷":
+      result = numArr[0] / numArr[1];
+      break;
+    case "×":
+      result = numArr[0] * numArr[1];
+      break;
+  }
+  return result;
+}
+
+function getNumbers(opIdx, numbers) {
+  const lhs = numbers.at(opIdx);
+  const rhs = numbers.at(opIdx + 1);
+  return [lhs, rhs];
+}
+
 function evaluate() {
   let expressionElement = document.querySelector(".current-expression");
+  const result = document.querySelector(".result");
   let equation = expressionElement.innerText;
-  let i = 0;
+  const numbers = equation.match(/[\d]+/g);
+  const operatorList = equation.split("").filter((element) => isNaN(element));
+  console.log(operatorList);
+  console.log(numbers);
 
-  console.log(equation);
-
-  let numbers = [];
-  let operatorList = [];
+  const tNumbers = numbers.map((n) => parseInt(n));
+  const tOpList = operatorList.slice();
+  for (let i = 0; i < operatorList.length; i++) {
+    let operatorIndex = 0;
+    let result = 0;
+    if (tOpList.includes("÷") || tOpList.includes("×")) {
+      if (tOpList.indexOf("÷") === -1) {
+        operatorIndex = tOpList.indexOf("×");
+      } else if (tOpList.indexOf("×") === -1) {
+        operatorIndex = tOpList.indexOf("÷");
+      } else if (tOpList.indexOf("÷") < tOpList.indexOf("×")) {
+        operatorIndex = tOpList.indexOf("÷");
+      } else {
+        operatorIndex = tOpList.indexOf("×");
+      }
+      result = evalExpression(
+        tOpList.at(operatorIndex),
+        getNumbers(operatorIndex, tNumbers)
+      );
+      tNumbers.splice(operatorIndex, 2, result);
+      tOpList.splice(operatorIndex, 1);
+    } else if (tOpList.includes("+") || tOpList.includes("-")) {
+      if (tOpList.indexOf("+") === -1) {
+        operatorIndex = tOpList.indexOf("-");
+      } else if (tOpList.indexOf("-") === -1) {
+        operatorIndex = tOpList.indexOf("+");
+      } else if (tOpList.indexOf("+") < tOpList.indexOf("-")) {
+        operatorIndex = tOpList.indexOf("+");
+      } else {
+        operatorIndex = tOpList.indexOf("-");
+      }
+      result = evalExpression(
+        tOpList.at(operatorIndex),
+        getNumbers(operatorIndex, tNumbers)
+      );
+      tNumbers.splice(operatorIndex, 2, result);
+      tOpList.splice(operatorIndex, 1);
+    }
+  }
+  console.log(tNumbers.join(""));
+  expressionElement.innerText = tNumbers.join("");
+  result.innerText = tNumbers.join("");
 }
 
 function updateExpressionDisplay(buttonText) {
@@ -100,12 +154,34 @@ function createCalculator(rows = 4, cols = 4) {
   const clearRow = document.createElement("section");
   buttonRow.className = "button-row";
 
+  const symbols = {
+    "×": "multiplication",
+    "÷": "division",
+    "+": "addition",
+    "-": "subtraction",
+    "=": "equals",
+    ".": "decimal",
+    0: "zero",
+    1: "one",
+    2: "two",
+    3: "three",
+    4: "four",
+    5: "five",
+    6: "six",
+    7: "seven",
+    8: "eight",
+    9: "nine",
+    DEL: "delete",
+    AC: "all-clear",
+  };
+
   // create the deletion button row
   const clearingButtons = ["DEL", "AC"];
   for (let i = 0; i < 2; i++) {
     const deletionButton = document.createElement("button");
     deletionButton.innerText = clearingButtons[i];
     deletionButton.className = "clear-button";
+    deletionButton.id = symbols[clearingButtons[i]];
     clearRow.appendChild(deletionButton);
   }
 
@@ -131,9 +207,11 @@ function createCalculator(rows = 4, cols = 4) {
       buttonArray.map((button, idx) => {
         // the last column is reserved for the operators
         if (idx === 3) {
+          button.id = symbols[operators[i]];
           return (button.innerText = operators[i]);
         }
         // this creates the digit pad [789, 456, 123]
+        button.id = symbols[digitStart];
         return (button.innerText = digitStart++);
       });
     } else if (i === cols - 1) {
@@ -141,9 +219,11 @@ function createCalculator(rows = 4, cols = 4) {
       buttonArray.map((button, idx) => {
         // last column is reserved for the operators
         if (idx === 3) {
+          button.id = symbols[operators[i]];
           return (button.innerText = operators[i]);
         }
         // assigns ["0", ".", "="] to the last row
+        button.id = symbols[lastRow[idx]];
         return (button.innerText = lastRow[idx]);
       });
     }
