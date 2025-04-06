@@ -1,17 +1,25 @@
 const handleButtonType = (e) => {
   if (e.target.closest("button")) {
     const expression = document.querySelector(".current-expression");
+    const calculator = document.querySelector(".calculator-container");
     const buttonType = e.target.innerText;
     const prohibitedStartingTypes = ["×", "÷", "+", "-", "0", "="];
     const prohibitedRepeatedOps = ["×", "÷", "+", "-"];
     let lastChar =
       expression.innerText.length > 0 ? expression.innerText.at(-1) : null;
+    const isEqualPressed = calculator.dataset.equalsPressed === "true";
 
     //Prohibit starting an expression with any button types in badStartingTypes
     if (
       !prohibitedStartingTypes.includes(buttonType) ||
       expression.innerText.length > 0
     ) {
+      if (isEqualPressed && buttonType.match(/[0-9]/)) {
+        expression.innerText = "";
+        calculator.dataset.equalsPressed = "false";
+      } else if (isEqualPressed && buttonType.match(/[×÷+-]/)) {
+        calculator.dataset.equalsPressed = "false";
+      }
       // Only update the display with digits or .
       if (buttonType.match(/[0-9.×÷+-]/)) {
         // prevent the user from entering multiple ++ or --, +×, +- etc.
@@ -24,17 +32,18 @@ const handleButtonType = (e) => {
         if (buttonType === "." && lastChar === ".") {
           return;
         }
+        const deleteButton = document.querySelector("#delete");
+        deleteButton.addEventListener("click", deleteLastEntry);
         updateExpressionDisplay(buttonType);
       }
       switch (buttonType) {
         case "AC":
           resetDisplay();
-          break;
-        case "=":
-          evaluate();
+          calculator.dataset.equalsPressed = "false";
           break;
       }
     }
+    calculator.dataset.equalsPressed;
   }
 };
 
@@ -65,14 +74,19 @@ function getNumbers(opIdx, numbers) {
 
 function evaluate() {
   let expressionElement = document.querySelector(".current-expression");
-  const result = document.querySelector(".result");
   let equation = expressionElement.innerText;
+  if (!equation.length > 0) {
+    return;
+  }
+  const deleteButton = document.querySelector("#delete");
+  deleteButton.removeEventListener("click", deleteLastEntry);
+  const result = document.querySelector(".result");
   const numbers = equation.match(/[\d]+/g);
   const operatorList = equation.split("").filter((element) => isNaN(element));
-  console.log(operatorList);
-  console.log(numbers);
+  operatorList;
+  numbers;
 
-  const tNumbers = numbers.map((n) => parseInt(n));
+  const tNumbers = numbers ? numbers.map((n) => parseInt(n)) : 0;
   const tOpList = operatorList.slice();
   for (let i = 0; i < operatorList.length; i++) {
     let operatorIndex = 0;
@@ -111,9 +125,13 @@ function evaluate() {
       tOpList.splice(operatorIndex, 1);
     }
   }
-  console.log(tNumbers.join(""));
-  expressionElement.innerText = tNumbers.join("");
-  result.innerText = tNumbers.join("");
+  const calculation =
+    Math.round((Number(tNumbers.join("")) + Number.EPSILON) * 1000) / 1000;
+  expressionElement.innerText = calculation;
+  result.innerText = calculation;
+
+  document.querySelector(".calculator-container").dataset.equalsPressed =
+    "true";
 }
 
 function updateExpressionDisplay(buttonText) {
@@ -135,7 +153,7 @@ function deleteLastEntry() {
     currentExpression.innerText !== "" &&
     currentExpression.innerText.length > 0
   ) {
-    console.log("hi");
+    ("hi");
     currentExpression.innerText = currentExpression.innerText.slice(0, -1);
   }
 }
@@ -233,6 +251,7 @@ function createCalculator(rows = 4, cols = 4) {
   }
 
   calculatorContainer.className = "calculator-container";
+  calculatorContainer.dataset.equalsPressed = "false";
   calculatorDisplay.className = "display-container";
   expression.className = "current-expression";
   result.className = "result";
@@ -246,6 +265,10 @@ function createCalculator(rows = 4, cols = 4) {
   buttonContainer.className = "button-container";
   buttonContainer.appendChild(buttonContainerFragment);
   buttonContainer.addEventListener("click", handleButtonType);
+  const equalsButton = Array.from(buttonContainer.lastChild.childNodes).filter(
+    (button) => button.id === "equals"
+  )[0];
+  equalsButton.addEventListener("click", evaluate);
   calculatorContainer.append(calculatorDisplay, buttonContainer);
   body.appendChild(calculatorContainer);
 }
