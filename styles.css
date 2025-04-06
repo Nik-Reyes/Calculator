@@ -62,10 +62,6 @@ button {
 .digit-button {
 }
 
-.equal-button {
-  aspect-ratio: 2/1;
-}
-
 .clear-button-container {
   display: flex;
   gap: 10px;

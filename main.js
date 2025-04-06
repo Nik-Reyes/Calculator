@@ -207,7 +207,6 @@ function createCalculator(rows = 4, cols = 4) {
       if (buttonLabel.match(/[0-9]/)) {
         button.className = "digit-button";
       } else if (buttonLabel === "=") {
-        button.className = "equal-button";
         button.addEventListener("click", calculateResult);
       } else if (buttonLabel === "AC" || buttonLabel === "DEL") {
         if (buttonLabel === "AC") {
