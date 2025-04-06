@@ -1,50 +1,90 @@
+// to do
+// Implement the calculations
+
+// handleButtonType is the junction for all calculations
+// with a switch case I can determine what happens if a certain type of button is pressed
+//
+
+// parsing edge cases
+// prevent 8+ followed by the user pressing the equals sign (do nothing)
+
 const handleButtonType = (e) => {
   if (e.target.closest("button")) {
+    const expression = document.querySelector(".current-expression");
     const buttonType = e.target.innerText;
-    if (buttonType !== "AC" && buttonType !== "DEL") {
-      updateExpressionDisplay(buttonType);
+    const prohibitedStartingTypes = ["×", "÷", "+", "-", "0", "="];
+    const prohibitedRepeatedOps = ["×", "÷", "+", "-"];
+    let lastChar =
+      expression.innerText.length > 0 ? expression.innerText.at(-1) : null;
+
+    //Prohibit starting an expression with any button types in badStartingTypes
+    if (
+      !prohibitedStartingTypes.includes(buttonType) ||
+      expression.innerText.length > 0
+    ) {
+      // Only update the display with digits or .
+      if (buttonType.match(/[0-9.×÷+-]/)) {
+        // prevent the user from entering multiple ++ or --, +×, +- etc.
+        if (
+          prohibitedRepeatedOps.includes(buttonType) &&
+          prohibitedRepeatedOps.includes(lastChar)
+        ) {
+          return;
+        }
+        if (buttonType === "." && lastChar === ".") {
+          return;
+        }
+        updateExpressionDisplay(buttonType);
+      }
+      switch (buttonType) {
+        case "AC":
+          resetDisplay();
+          break;
+        case "DEL":
+          deleteLastEntry();
+          break;
+        case "=":
+          evaluate();
+          break;
+      }
     }
-    if (e.target.innerText === "AC") resetDisplay();
-    if (e.target.innerText === "DEL") deleteLastEntry();
   }
 };
 
+function evaluate() {
+  let expressionElement = document.querySelector(".current-expression");
+  let equation = expressionElement.innerText;
+  let i = 0;
+
+  console.log(equation);
+
+  let numbers = [];
+  let operatorList = [];
+}
+
 function updateExpressionDisplay(buttonText) {
   const expressionDisplay = document.querySelector(".current-expression");
-  console.log(expressionDisplay);
   expressionDisplay.innerText += buttonText;
 }
 
 function resetDisplay() {
-  const initialState = ["", "0"];
-  Array.from(document.querySelector(".display-container").childNodes).forEach(
-    (partition, i) => {
-      partition.innerText = initialState[i];
-    }
-  );
-  console.log("hi");
-}
+  const expression = document.querySelector(".current-expression");
+  const result = document.querySelector(".result");
 
-function resetExpressionDisplay() {
-  document.querySelector(".display-container .current-expression").innerText =
-    "";
+  if (expression) expression.innerText = "";
+  if (result) result.innerText = "0";
 }
 
 function deleteLastEntry() {
-  const currentExpression = document
-    .querySelector(".current-expression")
-    .innerText.slice(0, -1);
-
-  resetExpressionDisplay();
-  updateExpressionDisplay(currentExpression);
+  const currentExpression = document.querySelector(".current-expression");
+  if (
+    currentExpression.innerText !== "" &&
+    currentExpression.innerText.length > 0
+  ) {
+    console.log("hi");
+    currentExpression.innerText = currentExpression.innerText.slice(0, -1);
+  }
 }
-
-// need to update display
-// need to implement AC function
-// need to implement DEL function
-// need to update result
-// need to calculate
-// when parsing the numbers
 
 function createCalculator(rows = 4, cols = 4) {
   // attach all elements to the fragment, and at the end, append the fragment to the
