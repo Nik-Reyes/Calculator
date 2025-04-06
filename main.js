@@ -156,9 +156,15 @@ function createCalculator(rows = 4, cols = 4) {
   const calculatorDisplay = document.createElement("div");
   const expression = document.createElement("div");
   const result = document.createElement("div");
-  const buttonRow = document.createElement("div");
-  const clearRow = document.createElement("section");
-  buttonRow.className = "button-row";
+
+  calculatorContainer.className = "calculator-container";
+  calculatorContainer.dataset.equalsPressed = "false";
+  calculatorDisplay.className = "display-container";
+  expression.className = "current-expression";
+  result.className = "result";
+  result.innerText = "0";
+  calculatorDisplay.append(expression, result);
+  buttonContainerFragment.appendChild(calculatorDisplay);
 
   const symbols = {
     "×": "multiplication",
@@ -181,85 +187,43 @@ function createCalculator(rows = 4, cols = 4) {
     AC: "all-clear",
   };
 
-  // create the deletion button row
-  const clearingButtons = ["DEL", "AC"];
-  for (let i = 0; i < 2; i++) {
-    const deletionButton = document.createElement("button");
-    deletionButton.innerText = clearingButtons[i];
-    deletionButton.className = "clear-button";
-    deletionButton.id = symbols[clearingButtons[i]];
-    clearRow.appendChild(deletionButton);
-  }
+  const buttonLayout = [
+    ["DEL", "AC", "", ""],
+    ["7", "8", "9", "×"],
+    ["4", "5", "6", "÷"],
+    ["1", "2", "3", "+"],
+    [".", "0", "=", "-"],
+  ];
 
-  // create the digits+operators
-  for (let i = 0; i < cols; i++) {
-    const digitButton = document.createElement("button");
-    buttonRow.appendChild(digitButton);
-  }
-
-  // Create n rows and assign all buttons their respective innerText
-  let digitStart = 7;
-  const operators = ["×", "÷", "+", "-"];
-  const lastRow = ["0", ".", "="];
-  for (let i = 0; i < cols; i++) {
-    // a row will be cloned 4 times
-    buttonContainerFragment.appendChild(buttonRow.cloneNode(true));
-
-    // "intercept" the current row inside the fragment, and assign innertext
-    buttonArray = Array.from(buttonContainerFragment.childNodes[i].childNodes);
-
-    // last row buttons are assigned innerText from array
-    if (i < cols - 1) {
-      buttonArray.map((button, idx) => {
-        // the last column is reserved for the operators
-        if (idx === 3) {
-          button.id = symbols[operators[i]];
-          return (button.innerText = operators[i]);
+  buttonLayout.forEach((row) => {
+    const buttonRow = document.createElement("div");
+    buttonRow.className = "button-row";
+    row.forEach((buttonLabel) => {
+      console.log(buttonLabel);
+      if (buttonLabel === "") return;
+      const button = document.createElement("button");
+      button.id = symbols[buttonLabel];
+      button.innerText = buttonLabel;
+      if (buttonLabel.match(/[0-9]/)) {
+        button.className = "digit-button";
+      } else if (buttonLabel === "=") {
+        button.className = "equal-button";
+        button.addEventListener("click", calculateResult);
+      } else if (buttonLabel === "AC" || buttonLabel === "DEL") {
+        if (buttonLabel === "AC") {
+          button.addEventListener("click", resetCalculator);
         }
-        // this creates the digit pad [789, 456, 123]
-        button.id = symbols[digitStart];
-        return (button.innerText = digitStart++);
-      });
-    } else if (i === cols - 1) {
-      // create the last row
-      buttonArray.map((button, idx) => {
-        // last column is reserved for the operators
-        if (idx === 3) {
-          button.id = symbols[operators[i]];
-          return (button.innerText = operators[i]);
-        }
-        // assigns ["0", ".", "="] to the last row
-        button.id = symbols[lastRow[idx]];
-        return (button.innerText = lastRow[idx]);
-      });
-    }
-    // each successive row starts 5 before (9-5 = 4, 6-5 = 1)
-    // -6 because of digitStart++ (first row ends at 10)
-    digitStart -= 6;
-  }
+        button.className = "clear-button";
+      }
+      buttonRow.appendChild(button);
+    });
+    buttonContainerFragment.appendChild(buttonRow);
+  });
 
-  calculatorContainer.className = "calculator-container";
-  calculatorContainer.dataset.equalsPressed = "false";
-  calculatorDisplay.className = "display-container";
-  expression.className = "current-expression";
-  result.className = "result";
-  result.innerText = "0";
-  calculatorDisplay.append(expression, result);
-  clearRow.className = "clear-button-container";
-  buttonContainerFragment.insertBefore(
-    clearRow,
-    buttonContainerFragment.firstChild
-  );
   buttonContainer.className = "button-container";
   buttonContainer.appendChild(buttonContainerFragment);
   buttonContainer.addEventListener("click", handleButtonClick);
-  const equalsButton = Array.from(buttonContainer.lastChild.childNodes).filter(
-    (button) => button.id === "equals"
-  )[0];
-  equalsButton.addEventListener("click", calculateResult);
-  const allClear = clearRow.lastChild;
-  allClear.addEventListener("click", resetCalculator);
-  calculatorContainer.append(calculatorDisplay, buttonContainer);
+  calculatorContainer.append(buttonContainer);
   body.appendChild(calculatorContainer);
 }
 
