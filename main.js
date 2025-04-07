@@ -1,7 +1,9 @@
 const handleButtonClick = (e) => {
+  const calculator = document.querySelector(".calculator-container");
+  if (!calculator || calculator.dataset.dying === "true") return;
+
   if (e.target.closest("button")) {
     const expression = document.querySelector(".current-expression");
-    const calculator = document.querySelector(".calculator-container");
     const buttonType = e.target.innerText;
     const prohibitedStartingTypes = ["×", "÷", "+", "-", "0", "="];
     const prohibitedRepeatedOps = ["×", "÷", "+", "-"];
@@ -27,6 +29,8 @@ const handleButtonClick = (e) => {
           prohibitedRepeatedOps.includes(buttonType) &&
           prohibitedRepeatedOps.includes(lastChar)
         ) {
+          let str = expression.innerText.slice(0, -1);
+          expression.innerText = str += buttonType;
           return;
         }
         if (buttonType === "." && lastChar === ".") return;
@@ -39,32 +43,80 @@ const handleButtonClick = (e) => {
   }
 };
 
-function performOperation(op, numArr) {
-  if (numArr[1] === "0") {
-    document.querySelector(".calculator-container").remove();
-    return null;
+function updateExpressionDisplay(buttonText) {
+  const expressionDisplay = document.querySelector(".current-expression");
+  if (!expressionDisplay) return;
+  expressionDisplay.innerText += buttonText;
+}
+
+function resetCalculator(e) {
+  e.stopPropagation();
+  const expression = document.querySelector(".current-expression");
+  if (!expression) return;
+  const result = document.querySelector(".result");
+  if (expression) expression.innerText = "";
+  if (result) result.innerText = "0";
+  document.querySelector(".calculator-container").dataset.equalsPressed =
+    "false";
+}
+
+function deleteLastCharacter() {
+  const currentExpression = document.querySelector(".current-expression");
+  if (!currentExpression) return;
+  if (
+    currentExpression.innerText !== "" &&
+    currentExpression.innerText.length > 0
+  ) {
+    currentExpression.innerText = currentExpression.innerText.slice(0, -1);
   }
+}
+
+function byeBye() {
+  const calculator = document.querySelector(".calculator-container");
+  calculator.dataset.dying = "true";
+  const expression = document.querySelector(".current-expression");
+  const result = document.querySelector(".result");
+  expression.innerText = "Mr. Stark, I dont feel so good.";
+  result.innerText = "oh no...";
+
+  calculator.classList.toggle("oopsy-doopsy");
+  window.setTimeout(() => {
+    document.querySelector(".calculator-container").remove();
+  }, 3000);
+}
+
+function performOperation(op, numArr) {
   let result = 0;
+  console.log(numArr);
   switch (op) {
     case "+":
       result = numArr[0] + numArr[1];
+      console.log(result);
       break;
     case "-":
       result = numArr[0] - numArr[1];
+      console.log(result);
+
       break;
     case "÷":
+      if (numArr[1] === 0) {
+        byeBye();
+        return null;
+      }
       result = numArr[0] / numArr[1];
+      console.log(result);
       break;
     case "×":
       result = numArr[0] * numArr[1];
+      console.log(result);
       break;
   }
   return result;
 }
 
 function getOperands(opIdx, numbers) {
-  const lhs = Number(numbers.at(opIdx));
-  const rhs = Number(numbers.at(opIdx + 1));
+  const lhs = parseFloat(numbers.at(opIdx));
+  const rhs = parseFloat(numbers.at(opIdx + 1));
   return [lhs, rhs];
 }
 
@@ -81,38 +133,47 @@ function evaluateNextOperation(arr1, arr2, op1, op2) {
     opIdx = arr1.indexOf(op2);
   }
   result = performOperation(arr1.at(opIdx), getOperands(opIdx, arr2));
-  if (result === null) {
-    return null;
-  }
+  if (result === null) return null;
+
+  //deletes the 2 numbers and op just evaluated and replaces with result
   arr2.splice(opIdx, 2, result);
   arr1.splice(opIdx, 1);
+
+  console.log("arr2", arr2);
+  console.log("arr1", arr1);
 }
 
-function calculateResult() {
+function calculateResult(e) {
+  e.stopPropagation();
   let expressionElement = document.querySelector(".current-expression");
   let equation = expressionElement.innerText;
-  if (!equation.length > 0) {
+  const checkLastChar = equation.at(-1);
+  if (
+    !expressionElement ||
+    !equation.length > 0 ||
+    checkLastChar.match(/[×÷+-]/)
+  )
     return;
-  }
+
   document
     .querySelector("#delete")
     .removeEventListener("click", deleteLastCharacter);
   const result = document.querySelector(".result");
-  const numberList = equation.match(/[\d]+/g);
-  const operatorList = equation.split("").filter((element) => isNaN(element));
+  const numberList = equation.match(/[.\d.]+/g);
+  console.log(numberList);
+  const operatorList = equation.match(/[×÷+-]/);
   const opListLength = operatorList.length; //Need a constant length to run loop because opList is being spliced
   let total = 0;
 
   for (let i = 0; i <= opListLength; i++) {
     if (operatorList.includes("÷") || operatorList.includes("×")) {
       total = evaluateNextOperation(operatorList, numberList, "÷", "×");
+      if (total === null) return;
     } else if (operatorList.includes("+") || operatorList.includes("-")) {
       total = evaluateNextOperation(operatorList, numberList, "+", "-");
     }
   }
-  if (total === null) {
-    return;
-  }
+
   const rounded =
     Math.round((Number(numberList.join("")) + Number.EPSILON) * 1000) / 1000;
   expressionElement.innerText = rounded;
@@ -120,30 +181,6 @@ function calculateResult() {
 
   document.querySelector(".calculator-container").dataset.equalsPressed =
     "true";
-}
-
-function updateExpressionDisplay(buttonText) {
-  const expressionDisplay = document.querySelector(".current-expression");
-  expressionDisplay.innerText += buttonText;
-}
-
-function resetCalculator() {
-  const expression = document.querySelector(".current-expression");
-  const result = document.querySelector(".result");
-  if (expression) expression.innerText = "";
-  if (result) result.innerText = "0";
-  document.querySelector(".calculator-container").dataset.equalsPressed =
-    "false";
-}
-
-function deleteLastCharacter() {
-  const currentExpression = document.querySelector(".current-expression");
-  if (
-    currentExpression.innerText !== "" &&
-    currentExpression.innerText.length > 0
-  ) {
-    currentExpression.innerText = currentExpression.innerText.slice(0, -1);
-  }
 }
 
 function createCalculator(rows = 4, cols = 4) {
@@ -164,7 +201,6 @@ function createCalculator(rows = 4, cols = 4) {
   result.className = "result";
   result.innerText = "0";
   calculatorDisplay.append(expression, result);
-  buttonContainerFragment.appendChild(calculatorDisplay);
 
   const symbols = {
     "×": "multiplication",
@@ -199,21 +235,29 @@ function createCalculator(rows = 4, cols = 4) {
     const buttonRow = document.createElement("div");
     buttonRow.className = "button-row";
     row.forEach((buttonLabel) => {
-      console.log(buttonLabel);
       if (buttonLabel === "") return;
       const button = document.createElement("button");
       button.id = symbols[buttonLabel];
       button.innerText = buttonLabel;
       if (buttonLabel.match(/[0-9]/)) {
         button.className = "digit-button";
+      } else if (buttonLabel.match(/[×÷+-]/)) {
+        button.className = "operator-button";
       } else if (buttonLabel === "=") {
+        button.className = "equals-button";
         button.addEventListener("click", calculateResult);
       } else if (buttonLabel === "AC" || buttonLabel === "DEL") {
         if (buttonLabel === "AC") {
+          button.className = "clear-button";
           button.addEventListener("click", resetCalculator);
+        } else {
+          button.className = "delete-button";
         }
-        button.className = "clear-button";
+      } else {
+        button.className = "misc";
       }
+
+      button.classList.add("is-pressed");
       buttonRow.appendChild(button);
     });
     buttonContainerFragment.appendChild(buttonRow);
@@ -222,7 +266,7 @@ function createCalculator(rows = 4, cols = 4) {
   buttonContainer.className = "button-container";
   buttonContainer.appendChild(buttonContainerFragment);
   buttonContainer.addEventListener("click", handleButtonClick);
-  calculatorContainer.append(buttonContainer);
+  calculatorContainer.append(calculatorDisplay, buttonContainer);
   body.appendChild(calculatorContainer);
 }
 

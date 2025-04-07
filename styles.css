@@ -4,17 +4,46 @@
   padding: 0;
 }
 
+:root {
+  --calc-container-border-radius: 70px;
+  --calc-container-border: 30px;
+  --button-container-padding: 10px;
+  --button-container-border-radius: calc(
+    var(--calc-container-border-radius) - var(--calc-container-border)
+  );
+  --display-container-border-radius: calc(
+    var(--button-container-border-radius) - var(--button-container-padding)
+  );
+}
+
+body {
+  min-height: 100vh;
+  width: 100vw;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .calculator-container {
-  border: 10px solid black;
-  max-width: 400px;
-  height: auto;
+  border: var(--calc-container-border) solid #818589;
+  width: 100%;
+  max-width: 450px;
+  border-radius: var(--calc-container-border-radius);
+  background-image: url(brown-wooden-texture.jpg);
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  box-shadow: inset 0px 0px 1px 2px rgb(39, 39, 39);
 }
 
 .display-container {
   display: flex;
   flex-direction: column;
+  margin: 10px;
   padding: 10px 20px;
-  border: 3px solid white;
+  border-top-right-radius: var(--display-container-border-radius);
+  border-top-left-radius: var(--display-container-border-radius);
+  border: 5px solid black;
   background-color: beige;
 }
 
@@ -23,6 +52,7 @@
   justify-content: flex-start;
   font-size: 2rem;
   height: 2rem;
+  overflow: hidden;
 }
 
 .result {
@@ -34,8 +64,9 @@
 .button-container {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  padding: 5px 5px;
+  gap: 10px;
+  padding: 0 var(--button-container-padding) var(--button-container-padding);
+  border-radius: var(--button-container-border-radius);
 }
 
 .button-row {
@@ -57,9 +88,14 @@ button {
   font-size: clamp(1rem, 2vw, 3rem);
   user-select: none;
   cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.05s ease;
 }
 
-.digit-button {
+.digit-button,
+.operator-button,
+.misc,
+.equals-button {
+  background: radial-gradient(circle, #2c2c2c 0%, #1a1a1a 60%, #000000 100%);
 }
 
 .clear-button-container {
@@ -67,7 +103,51 @@ button {
   gap: 10px;
 }
 
-.clear-button {
-  border-radius: 5px;
+.clear-button,
+.delete-button,
+.digit-button,
+.operator-button,
+.misc,
+.equals-button {
+  box-shadow: inset 0px 0px 10px 1px#000000, 0px 0px 8px 2px#1d1d1d;
+  text-shadow: 0px 0px 1px rgb(255, 255, 255);
+}
+
+.clear-button,
+.delete-button {
+  border-radius: 40px;
   aspect-ratio: 2/1;
+}
+
+.clear-button {
+  border-top-left-radius: var(--display-container-border-radius);
+  border-bottom-left-radius: var(--display-container-border-radius);
+}
+
+.delete-button {
+  border-top-right-radius: var(--display-container-border-radius);
+  border-bottom-right-radius: var(--display-container-border-radius);
+}
+
+.clear-button:active,
+.delete-button:active,
+.digit-button:active,
+.operator-button:active,
+.misc:active,
+.equals-button:active {
+  box-shadow: 0px 0px 8px 2px #ffffff;
+  transform: scale(0.9);
+}
+
+.oopsy-doopsy {
+  animation: bye-bye 3s forwards;
+}
+
+@keyframes bye-bye {
+  from {
+    opacity: 100%;
+  }
+  to {
+    opacity: 0%;
+  }
 }
