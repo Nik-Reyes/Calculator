@@ -16,6 +16,7 @@ const handleButtonClick = (e) => {
       !prohibitedStartingTypes.includes(buttonType) ||
       expression.innerText.length > 0
     ) {
+      //Prohibits user from deleting the result after pressing =, unless cleared
       if (isEqualPressed && buttonType.match(/[0-9]/)) {
         expression.innerText = "";
         calculator.dataset.equalsPressed = "false";
@@ -161,7 +162,7 @@ function calculateResult(e) {
   const result = document.querySelector(".result");
   const numberList = equation.match(/[.\d.]+/g);
   console.log(numberList);
-  const operatorList = equation.match(/[×÷+-]/);
+  const operatorList = equation.match(/[×÷+-]/g);
   const opListLength = operatorList.length; //Need a constant length to run loop because opList is being spliced
   let total = 0;
 
