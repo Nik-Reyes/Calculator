@@ -6,8 +6,9 @@ const handleButtonClick = (e) => {
   )
     return;
 
-  if (e.target.closest("button")) {
-    const currentButton = e.target.innerText;
+  const button = e.type === "click" ? e.target : e;
+  if (button.closest("button")) {
+    const currentButton = button.innerText;
     const isEqualPressed = calculator.dataset.equalsPressed === "true";
 
     if (isValid(currentButton, isEqualPressed, calculator) === false) {
@@ -319,6 +320,35 @@ function createCalculator(rows = 4, cols = 4) {
   calculatorContainer.append(calculatorDisplay, buttonContainer);
   calculatorCasing.appendChild(calculatorContainer);
   body.appendChild(calculatorCasing);
+
+  window.addEventListener("keydown", (e) => {
+    const keyObject = {
+      digit: (key) => console.log(key),
+      backspace: () => buttonContainer.childNodes[0].childNodes[0],
+      operator: (key) => {
+        const keyMap = {
+          "*": "×",
+          "/": "÷",
+          "+": "+",
+          "-": "-",
+          "=": "=",
+          ".": ".",
+        };
+        console.log(keyMap[key]);
+      },
+    };
+    if (!e.repeat) {
+      const key = e.key.toLowerCase();
+      if (!isNaN(key)) {
+        keyObject.digit(key);
+        // handleButtonClick(keyObject[key]());
+      } else if (["*", "/", "+", "-", "=", "."].includes(key)) {
+        keyObject.operator(key);
+      } else if (keyObject[key]) {
+        deleteLastCharacter();
+      }
+    }
+  });
 }
 
 createCalculator();
