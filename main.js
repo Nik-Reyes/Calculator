@@ -1,103 +1,153 @@
 const handleButtonClick = (e) => {
   const calculator = document.querySelector(".calculator-container");
-  if (!calculator || calculator.dataset.dying === "true") return;
+  if (
+    elementExists(calculator) === false ||
+    calculator.dataset.dying === "true"
+  )
+    return;
 
   if (e.target.closest("button")) {
-    const expression = document.querySelector(".current-expression");
-    const buttonType = e.target.innerText;
-    const prohibitedStartingTypes = ["×", "÷", "+", "-", "0", "="];
-    const prohibitedRepeatedOps = ["×", "÷", "+", "-"];
-    let lastChar =
-      expression.innerText.length > 0 ? expression.innerText.at(-1) : null;
+    const currentButton = e.target.innerText;
     const isEqualPressed = calculator.dataset.equalsPressed === "true";
 
-    //Prohibit starting an expression with any button types in badStartingTypes
-    if (
-      !prohibitedStartingTypes.includes(buttonType) ||
-      expression.innerText.length > 0
-    ) {
-      //Prohibits user from deleting the result after pressing =, unless cleared
-      if (isEqualPressed && buttonType.match(/[0-9]/)) {
-        expression.innerText = "";
-        calculator.dataset.equalsPressed = "false";
-      } else if (isEqualPressed && buttonType.match(/[×÷+-]/)) {
-        calculator.dataset.equalsPressed = "false";
-      }
-      // Only update the display with digits or .
-      if (buttonType.match(/[0-9.×÷+-]/)) {
-        // prevent the user from entering multiple ++ or --, +×, +- etc.
-        if (
-          prohibitedRepeatedOps.includes(buttonType) &&
-          prohibitedRepeatedOps.includes(lastChar)
-        ) {
-          let str = expression.innerText.slice(0, -1);
-          expression.innerText = str += buttonType;
-          return;
-        }
-        if (buttonType === "." && lastChar === ".") return;
-
-        const deleteButton = document.querySelector("#delete");
-        deleteButton.addEventListener("click", deleteLastCharacter);
-        updateExpressionDisplay(buttonType);
-      }
+    if (isValid(currentButton, isEqualPressed, calculator) === false) {
+      return;
+    } else {
+      updateExpressionElement(currentButton);
     }
   }
 };
 
-function updateExpressionDisplay(buttonText) {
-  const expressionDisplay = document.querySelector(".current-expression");
-  if (!expressionDisplay) return;
-  expressionDisplay.innerText += buttonText;
+function isValid(currentButton, isEqualPressed, calculator) {
+  const expressionElement = document.querySelector(".current-expression");
+  if (elementExists(expressionElement) === false) return;
+  let currentExpression = expressionElement.innerText;
+  const newExpression = currentExpression + currentButton;
+  const prohibitedStartingTypes = ["×", "÷", "+", "-", "="];
+  let previousButton = expressionElement.innerText.at(-1) || null;
+
+  // Prohibits operators as the first character
+  if (
+    currentExpression.length === 0 &&
+    prohibitedStartingTypes.includes(currentButton)
+  ) {
+    return false;
+  }
+
+  // Allows only these button types
+  if (!currentButton.match(/[0-9.×÷+-]/)) {
+    return false;
+  }
+
+  // Prohibits repeated operators and allows user to change current operator w/o deleting
+  if (
+    currentButton.match(/[×÷+-]/) &&
+    previousButton &&
+    previousButton.match(/[×÷+-]/)
+  ) {
+    expressionElement.innerText =
+      currentExpression.slice(0, -1) + currentButton;
+    return false;
+  }
+
+  //Prohibits back-to-back decimals
+  if (currentButton === ".") {
+    if (previousButton === ".") {
+      return false;
+    }
+    // Prohibits input like 12.3.56.5 || 12.3 + 12.3.56.5 || 12.3 + 10 + 12.3 + 12.3.56.5
+    // Grab either the most recent string after an operator or test the current input
+    const currentString = newExpression.match(/[×÷+-]/)
+      ? newExpression.split(/[\+\×\-\÷]/).at(-1)
+      : newExpression;
+
+    const decimalsArray = currentString.match(/[\.]/g);
+    const decimalCount = decimalsArray ? decimalsArray.length : 0;
+
+    if (decimalCount > 1) {
+      return false;
+    }
+    if (previousButton === null || !previousButton.match(/[0-9]/)) {
+      expressionElement.innerText += "0";
+    }
+  }
+
+  // Determines next action if equals is pressed
+  if (isEqualPressed) {
+    if (currentButton.match(/[0-9]/)) {
+      expressionElement.innerText = "";
+      calculator.dataset.equalsPressed = "false";
+    } else if (currentButton.match(/[×÷+-]/)) {
+      calculator.dataset.equalsPressed = "false";
+    }
+    const deleteElement = document.querySelector("#delete");
+    if (elementExists(deleteElement) === false) return;
+    deleteElement.addEventListener("click", deleteLastCharacter);
+  }
+
+  return true;
+}
+
+function elementExists(...args) {
+  return args.every((element) => element !== null && element !== undefined);
+}
+
+function updateExpressionElement(buttonText) {
+  const expressionElement = document.querySelector(".current-expression");
+  if (elementExists(expressionElement) === false) {
+    return;
+  } else {
+    expressionElement.innerText += buttonText;
+  }
 }
 
 function resetCalculator(e) {
   e.stopPropagation();
-  const expression = document.querySelector(".current-expression");
-  if (!expression) return;
-  const result = document.querySelector(".result");
-  if (expression) expression.innerText = "";
-  if (result) result.innerText = "0";
-  document.querySelector(".calculator-container").dataset.equalsPressed =
-    "false";
+  const expressionElement = document.querySelector(".current-expression");
+  const resultElement = document.querySelector(".result");
+  if (elementExists(expressionElement, resultElement) === false) {
+    return;
+  } else {
+    expressionElement.innerText = "";
+    resultElement.innerText = "0";
+    const calculator = document.querySelector(".calculator-container");
+    if (elementExists(calculator) === false) return;
+    calculator.dataset.equalsPressed = "false";
+  }
 }
 
 function deleteLastCharacter() {
-  const currentExpression = document.querySelector(".current-expression");
-  if (!currentExpression) return;
-  if (
-    currentExpression.innerText !== "" &&
-    currentExpression.innerText.length > 0
-  ) {
-    currentExpression.innerText = currentExpression.innerText.slice(0, -1);
+  const expressionElement = document.querySelector(".current-expression");
+  if (elementExists(expressionElement) === false) return;
+  if (expressionElement.innerText.length > 0) {
+    expressionElement.innerText = expressionElement.innerText.slice(0, -1);
   }
 }
 
 function byeBye() {
   const calculator = document.querySelector(".calculator-container");
+  const expressionElement = document.querySelector(".current-expression");
+  const resultElement = document.querySelector(".result");
+  if (elementExists(calculator, expressionElement, resultElement) === false)
+    return;
   calculator.dataset.dying = "true";
-  const expression = document.querySelector(".current-expression");
-  const result = document.querySelector(".result");
-  expression.innerText = "Mr. Stark, I dont feel so good.";
-  result.innerText = "oh no...";
+  expressionElement.innerText = "Mr. Stark, I dont feel so";
+  resultElement.innerText = "oh no...";
 
   calculator.classList.toggle("oopsy-doopsy");
   window.setTimeout(() => {
-    document.querySelector(".calculator-container").remove();
-  }, 3000);
+    calculator.remove();
+  }, 2900);
 }
 
 function performOperation(op, numArr) {
   let result = 0;
-  console.log(numArr);
   switch (op) {
     case "+":
       result = numArr[0] + numArr[1];
-      console.log(result);
       break;
     case "-":
       result = numArr[0] - numArr[1];
-      console.log(result);
-
       break;
     case "÷":
       if (numArr[1] === 0) {
@@ -105,11 +155,9 @@ function performOperation(op, numArr) {
         return null;
       }
       result = numArr[0] / numArr[1];
-      console.log(result);
       break;
     case "×":
       result = numArr[0] * numArr[1];
-      console.log(result);
       break;
   }
   return result;
@@ -123,7 +171,7 @@ function getOperands(opIdx, numbers) {
 
 function evaluateNextOperation(arr1, arr2, op1, op2) {
   let opIdx = 0;
-  let result = 0;
+  let expressionResult = 0;
   if (arr1.indexOf(op1) === -1) {
     opIdx = arr1.indexOf(op2);
   } else if (arr1.indexOf(op2) === -1) {
@@ -133,39 +181,42 @@ function evaluateNextOperation(arr1, arr2, op1, op2) {
   } else {
     opIdx = arr1.indexOf(op2);
   }
-  result = performOperation(arr1.at(opIdx), getOperands(opIdx, arr2));
-  if (result === null) return null;
-
-  //deletes the 2 numbers and op just evaluated and replaces with result
-  arr2.splice(opIdx, 2, result);
-  arr1.splice(opIdx, 1);
-
-  console.log("arr2", arr2);
-  console.log("arr1", arr1);
+  expressionResult = performOperation(arr1.at(opIdx), getOperands(opIdx, arr2));
+  return expressionResult === null
+    ? null
+    : (arr2.splice(opIdx, 2, expressionResult), arr1.splice(opIdx, 1));
 }
 
 function calculateResult(e) {
   e.stopPropagation();
   let expressionElement = document.querySelector(".current-expression");
-  let equation = expressionElement.innerText;
-  const checkLastChar = equation.at(-1);
-  if (
-    !expressionElement ||
-    !equation.length > 0 ||
-    checkLastChar.match(/[×÷+-]/)
-  )
-    return;
+  const resultElement = document.querySelector(".result");
+  if (elementExists(expressionElement, resultElement) === false) return;
 
-  document
-    .querySelector("#delete")
-    .removeEventListener("click", deleteLastCharacter);
-  const result = document.querySelector(".result");
-  const numberList = equation.match(/[.\d.]+/g);
-  console.log(numberList);
-  const operatorList = equation.match(/[×÷+-]/g);
+  let currentExpression = expressionElement.innerText;
+  const checkLastChar = currentExpression.at(-1);
+  if (currentExpression.length === 0 || checkLastChar.match(/[×÷+-]/)) return;
+
+  const numberList = currentExpression.match(/[.\d.]+/g);
+  const operatorList = currentExpression.match(/[×÷+-]/g);
+  if (!operatorList) {
+    resultElement.innerText = currentExpression;
+    return;
+  }
+  if (numberList.length === 1 && operatorList) {
+    return;
+  }
+
+  const calculator = document.querySelector(".calculator-container");
+  if (elementExists(calculator) === false) return;
+  calculator.dataset.equalsPressed = "true";
+
+  const deleteElement = document.querySelector("#delete");
+  if (elementExists(deleteElement) === false) return;
+  deleteElement.removeEventListener("click", deleteLastCharacter);
+
   const opListLength = operatorList.length; //Need a constant length to run loop because opList is being spliced
   let total = 0;
-
   for (let i = 0; i <= opListLength; i++) {
     if (operatorList.includes("÷") || operatorList.includes("×")) {
       total = evaluateNextOperation(operatorList, numberList, "÷", "×");
@@ -176,17 +227,12 @@ function calculateResult(e) {
   }
 
   const rounded =
-    Math.round((Number(numberList.join("")) + Number.EPSILON) * 1000) / 1000;
+    Math.round((Number(numberList[0]) + Number.EPSILON) * 1000) / 1000;
   expressionElement.innerText = rounded;
-  result.innerText = rounded;
-
-  document.querySelector(".calculator-container").dataset.equalsPressed =
-    "true";
+  resultElement.innerText = rounded;
 }
 
 function createCalculator(rows = 4, cols = 4) {
-  // attach all elements to the fragment, and at the end, append the fragment to the
-  // actual calculator container
   const body = document.querySelector("body");
   const calculatorContainer = document.createElement("div");
   const buttonContainer = document.createElement("section");
@@ -252,6 +298,7 @@ function createCalculator(rows = 4, cols = 4) {
           button.className = "clear-button";
           button.addEventListener("click", resetCalculator);
         } else {
+          button.addEventListener("click", deleteLastCharacter);
           button.className = "delete-button";
         }
       } else {
