@@ -6,7 +6,7 @@
 
 :root {
   --calc-container-border-radius: 70px;
-  --calc-container-border: 30px;
+  --calc-container-border: 20px;
   --button-container-padding: 10px;
   --button-container-border-radius: calc(
     var(--calc-container-border-radius) - var(--calc-container-border)
@@ -29,7 +29,7 @@ body {
   width: 100%;
   max-width: 450px;
   border-radius: var(--calc-container-border-radius);
-  background-image: url(brown-wooden-texture.jpg);
+  background-image: url(elderwood-texture.jpg);
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;
@@ -43,7 +43,8 @@ body {
   padding: 10px 20px;
   border-top-right-radius: var(--display-container-border-radius);
   border-top-left-radius: var(--display-container-border-radius);
-  border: 5px solid black;
+  /* border: 5px solid #717274; */
+  box-shadow: inset 0px 0px 4px 4px black;
   background-color: beige;
 }
 
@@ -77,7 +78,6 @@ body {
 button {
   all: unset;
   display: flex;
-  background-color: rgb(34, 34, 34);
   border-radius: 50%;
   border: 3px solid grey;
   color: white;
@@ -94,8 +94,15 @@ button {
 .digit-button,
 .operator-button,
 .misc,
-.equals-button {
-  background: radial-gradient(circle, #2c2c2c 0%, #1a1a1a 60%, #000000 100%);
+.equals-button,
+.clear-button,
+.delete-button {
+  background: radial-gradient(
+    circle,
+    rgb(44, 44, 44) 0%,
+    rgb(26, 26, 26) 60%,
+    rgb(0, 0, 0) 100%
+  );
 }
 
 .clear-button-container {
@@ -135,7 +142,7 @@ button {
 .operator-button:active,
 .misc:active,
 .equals-button:active {
-  box-shadow: 0px 0px 8px 2px #ffffff;
+  box-shadow: 0px 0px 2px 0.1px #ffffff;
   transform: scale(0.9);
 }
 
