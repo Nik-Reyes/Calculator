@@ -234,6 +234,7 @@ function calculateResult(e) {
 
 function createCalculator(rows = 4, cols = 4) {
   const body = document.querySelector("body");
+  const calculatorCasing = document.createElement("div");
   const calculatorContainer = document.createElement("div");
   const buttonContainer = document.createElement("section");
   const buttonContainerFragment = document.createDocumentFragment();
@@ -241,6 +242,7 @@ function createCalculator(rows = 4, cols = 4) {
   const expression = document.createElement("div");
   const result = document.createElement("div");
 
+  calculatorCasing.className = "calculator-casing";
   calculatorContainer.className = "calculator-container";
   calculatorContainer.dataset.equalsPressed = "false";
   calculatorDisplay.className = "display-container";
@@ -315,7 +317,8 @@ function createCalculator(rows = 4, cols = 4) {
   buttonContainer.appendChild(buttonContainerFragment);
   buttonContainer.addEventListener("click", handleButtonClick);
   calculatorContainer.append(calculatorDisplay, buttonContainer);
-  body.appendChild(calculatorContainer);
+  calculatorCasing.appendChild(calculatorContainer);
+  body.appendChild(calculatorCasing);
 }
 
 createCalculator();
