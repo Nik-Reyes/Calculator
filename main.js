@@ -7,6 +7,7 @@ const handleButtonClick = (e) => {
     return;
 
   const button = e.type === "click" ? e.target : e;
+  console.log(button);
   if (button.closest("button")) {
     const currentButton = button.innerText;
     const isEqualPressed = calculator.dataset.equalsPressed === "true";
@@ -323,8 +324,12 @@ function createCalculator(rows = 4, cols = 4) {
 
   window.addEventListener("keydown", (e) => {
     const keyObject = {
-      digit: (key) => console.log(key),
-      backspace: () => buttonContainer.childNodes[0].childNodes[0],
+      digit: (key) => {
+        const buttonArray = Array.from(buttonContainer.childNodes)
+          .flatMap((row) => Array.from(row.childNodes))
+          .filter((button) => button.id === symbols[key]);
+        return buttonArray[0];
+      },
       operator: (key) => {
         const keyMap = {
           "*": "×",
@@ -340,12 +345,12 @@ function createCalculator(rows = 4, cols = 4) {
     if (!e.repeat) {
       const key = e.key.toLowerCase();
       if (!isNaN(key)) {
-        keyObject.digit(key);
+        handleButtonClick(keyObject.digit(key));
         // handleButtonClick(keyObject[key]());
       } else if (["*", "/", "+", "-", "=", "."].includes(key)) {
         keyObject.operator(key);
       } else if (keyObject[key]) {
-        deleteLastCharacter();
+        if (key === "backspace") deleteLastCharacter();
       }
     }
   });
