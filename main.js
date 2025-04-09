@@ -7,7 +7,6 @@ const handleButtonClick = (e) => {
     return;
 
   const button = e.type === "click" ? e.target : e;
-  console.log(button);
   if (button.closest("button")) {
     const currentButton = button.innerText;
     const isEqualPressed = calculator.dataset.equalsPressed === "true";
@@ -115,6 +114,7 @@ function resetCalculator(e) {
     const calculator = document.querySelector(".calculator-container");
     if (elementExists(calculator) === false) return;
     calculator.dataset.equalsPressed = "false";
+    // calculator.focus();
   }
 }
 
@@ -190,7 +190,10 @@ function evaluateNextOperation(arr1, arr2, op1, op2) {
 }
 
 function calculateResult(e) {
-  e.stopPropagation();
+  if (e && e.stopPropagation) {
+    e.stopPropagation();
+  }
+
   let expressionElement = document.querySelector(".current-expression");
   const resultElement = document.querySelector(".result");
   if (elementExists(expressionElement, resultElement) === false) return;
@@ -246,6 +249,7 @@ function createCalculator(rows = 4, cols = 4) {
 
   calculatorCasing.className = "calculator-casing";
   calculatorContainer.className = "calculator-container";
+  // calculatorContainer.tabIndex = 0;
   calculatorContainer.dataset.equalsPressed = "false";
   calculatorDisplay.className = "display-container";
   expression.className = "current-expression";
@@ -290,6 +294,7 @@ function createCalculator(rows = 4, cols = 4) {
       const button = document.createElement("button");
       button.id = symbols[buttonLabel];
       button.innerText = buttonLabel;
+
       if (buttonLabel.match(/[0-9]/)) {
         button.className = "digit-button";
       } else if (buttonLabel.match(/[×÷+-]/)) {
@@ -308,8 +313,6 @@ function createCalculator(rows = 4, cols = 4) {
       } else {
         button.className = "misc";
       }
-
-      button.classList.add("is-pressed");
       buttonRow.appendChild(button);
     });
     buttonContainerFragment.appendChild(buttonRow);
@@ -335,7 +338,6 @@ function createCalculator(rows = 4, cols = 4) {
             (button) =>
               button.id === symbols[key] || button.id === symbols[keyMap[key]]
           );
-        console.log(buttonArray[0]);
         return buttonArray[0];
       },
     };
@@ -344,7 +346,10 @@ function createCalculator(rows = 4, cols = 4) {
       const key = e.key.toLowerCase();
       if (key === "backspace") {
         deleteLastCharacter();
-      } else if (!isNaN(key) || ["+", "-", "*", "/", "="].includes(key)) {
+      } else if (key === "=" || key === "enter") {
+        e.preventDefault();
+        calculateResult();
+      } else if (!isNaN(key) || ["+", "-", "*", "/"].includes(key)) {
         handleButtonClick(keyObject.button(key));
       }
     }
