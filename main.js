@@ -324,33 +324,28 @@ function createCalculator(rows = 4, cols = 4) {
 
   window.addEventListener("keydown", (e) => {
     const keyObject = {
-      digit: (key) => {
-        const buttonArray = Array.from(buttonContainer.childNodes)
-          .flatMap((row) => Array.from(row.childNodes))
-          .filter((button) => button.id === symbols[key]);
-        return buttonArray[0];
-      },
-      operator: (key) => {
+      button: (key) => {
         const keyMap = {
           "*": "×",
           "/": "÷",
-          "+": "+",
-          "-": "-",
-          "=": "=",
-          ".": ".",
         };
-        console.log(keyMap[key]);
+        const buttonArray = Array.from(buttonContainer.childNodes)
+          .flatMap((row) => Array.from(row.childNodes))
+          .filter(
+            (button) =>
+              button.id === symbols[key] || button.id === symbols[keyMap[key]]
+          );
+        console.log(buttonArray[0]);
+        return buttonArray[0];
       },
     };
+
     if (!e.repeat) {
       const key = e.key.toLowerCase();
-      if (!isNaN(key)) {
-        handleButtonClick(keyObject.digit(key));
-        // handleButtonClick(keyObject[key]());
-      } else if (["*", "/", "+", "-", "=", "."].includes(key)) {
-        keyObject.operator(key);
-      } else if (keyObject[key]) {
-        if (key === "backspace") deleteLastCharacter();
+      if (key === "backspace") {
+        deleteLastCharacter();
+      } else if (!isNaN(key) || ["+", "-", "*", "/", "="].includes(key)) {
+        handleButtonClick(keyObject.button(key));
       }
     }
   });
