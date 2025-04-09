@@ -120,7 +120,9 @@ function resetCalculator(e) {
 
 function deleteLastCharacter() {
   const expressionElement = document.querySelector(".current-expression");
-  if (elementExists(expressionElement) === false) return;
+  const calculator = document.querySelector(".calculator-container");
+  if (elementExists(expressionElement, calculator) === false) return;
+  if (calculator.dataset.equalsPressed === "true") return;
   if (expressionElement.innerText.length > 0) {
     expressionElement.innerText = expressionElement.innerText.slice(0, -1);
   }
@@ -357,3 +359,12 @@ function createCalculator(rows = 4, cols = 4) {
 }
 
 createCalculator();
+
+document.addEventListener("focusin", (e) => {
+  console.log("Focus changed to:", e.target);
+});
+
+window.addEventListener("keydown", (e) => {
+  console.log("Key pressed:", e.key, "Active element:", document.activeElement);
+  // rest of your handler
+});
