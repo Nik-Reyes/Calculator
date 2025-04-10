@@ -109,7 +109,8 @@ function resetCalculator(e) {
   }
 }
 
-function deleteLastCharacter() {
+function deleteLastCharacter(e) {
+  if (e !== undefined && e.type === "click") e.stopPropagation();
   const expressionElement = document.querySelector(".current-expression");
   const calculator = document.querySelector(".calculator-container");
   if (!elementExists(expressionElement, calculator)) return;
