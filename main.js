@@ -1,17 +1,13 @@
 const handleButtonClick = (e) => {
   const calculator = document.querySelector(".calculator-container");
-  if (
-    elementExists(calculator) === false ||
-    calculator.dataset.dying === "true"
-  )
-    return;
+  if (!elementExists(calculator) || calculator.dataset.dying === "true") return;
 
-  const button = e.type === "click" ? e.target : e;
+  let button = e !== undefined && e.type === "click" ? e.target : e;
   if (button.closest("button")) {
     const currentButton = button.innerText;
     const isEqualPressed = calculator.dataset.equalsPressed === "true";
 
-    if (isValid(currentButton, isEqualPressed, calculator) === false) {
+    if (!isValid(currentButton, isEqualPressed, calculator)) {
       return;
     } else {
       updateExpressionElement(currentButton);
@@ -21,17 +17,16 @@ const handleButtonClick = (e) => {
 
 function isValid(currentButton, isEqualPressed, calculator) {
   const expressionElement = document.querySelector(".current-expression");
-  if (elementExists(expressionElement) === false) return;
+  console.log("expression element: ", expressionElement);
+  if (expressionElement === null || expressionElement === undefined)
+    return false;
   let currentExpression = expressionElement.innerText;
   const newExpression = currentExpression + currentButton;
-  const prohibitedStartingTypes = ["×", "÷", "+", "-", "="];
   let previousButton = expressionElement.innerText.at(-1) || null;
 
+  console.log(currentButton);
   // Prohibits operators as the first character
-  if (
-    currentExpression.length === 0 &&
-    prohibitedStartingTypes.includes(currentButton)
-  ) {
+  if (currentExpression.length === 0 && !currentButton.match(/[×÷+-=]/)) {
     return false;
   }
 
@@ -61,18 +56,16 @@ function isValid(currentButton, isEqualPressed, calculator) {
     const currentString = newExpression.match(/[×÷+-]/)
       ? newExpression.split(/[\+\×\-\÷]/).at(-1)
       : newExpression;
-
     const decimalsArray = currentString.match(/[\.]/g);
     const decimalCount = decimalsArray ? decimalsArray.length : 0;
 
     if (decimalCount > 1) {
       return false;
     }
-    if (previousButton === null || !previousButton.match(/[0-9]/)) {
+    if (!previousButton || !previousButton.match(/[0-9]/)) {
       expressionElement.innerText += "0";
     }
   }
-
   // Determines next action if equals is pressed
   if (isEqualPressed) {
     if (currentButton.match(/[0-9]/)) {
@@ -82,7 +75,7 @@ function isValid(currentButton, isEqualPressed, calculator) {
       calculator.dataset.equalsPressed = "false";
     }
     const deleteElement = document.querySelector("#delete");
-    if (elementExists(deleteElement) === false) return;
+    if (!elementExists(deleteElement)) return;
     deleteElement.addEventListener("click", deleteLastCharacter);
   }
 
@@ -95,7 +88,7 @@ function elementExists(...args) {
 
 function updateExpressionElement(buttonText) {
   const expressionElement = document.querySelector(".current-expression");
-  if (elementExists(expressionElement) === false) {
+  if (!elementExists(expressionElement)) {
     return;
   } else {
     expressionElement.innerText += buttonText;
@@ -106,22 +99,20 @@ function resetCalculator(e) {
   e.stopPropagation();
   const expressionElement = document.querySelector(".current-expression");
   const resultElement = document.querySelector(".result");
-  if (elementExists(expressionElement, resultElement) === false) {
+  const calculator = document.querySelector(".calculator-container");
+  if (!elementExists(expressionElement, resultElement, calculator)) {
     return;
   } else {
     expressionElement.innerText = "";
     resultElement.innerText = "0";
-    const calculator = document.querySelector(".calculator-container");
-    if (elementExists(calculator) === false) return;
-    calculator.dataset.equalsPressed = "false";
-    // calculator.focus();
+    calculator.dataset.equalsPressed = false;
   }
 }
 
 function deleteLastCharacter() {
   const expressionElement = document.querySelector(".current-expression");
   const calculator = document.querySelector(".calculator-container");
-  if (elementExists(expressionElement, calculator) === false) return;
+  if (!elementExists(expressionElement, calculator)) return;
   if (calculator.dataset.equalsPressed === "true") return;
   if (expressionElement.innerText.length > 0) {
     expressionElement.innerText = expressionElement.innerText.slice(0, -1);
@@ -132,8 +123,7 @@ function byeBye() {
   const calculator = document.querySelector(".calculator-container");
   const expressionElement = document.querySelector(".current-expression");
   const resultElement = document.querySelector(".result");
-  if (elementExists(calculator, expressionElement, resultElement) === false)
-    return;
+  if (!elementExists(calculator, expressionElement, resultElement)) return;
   calculator.dataset.dying = "true";
   expressionElement.innerText = "Mr. Stark, I dont feel so";
   resultElement.innerText = "oh no...";
@@ -192,18 +182,15 @@ function evaluateNextOperation(arr1, arr2, op1, op2) {
 }
 
 function calculateResult(e) {
-  if (e && e.stopPropagation) {
-    e.stopPropagation();
-  }
+  if (e !== undefined && e.type === "click") e.stopPropagation();
 
   let expressionElement = document.querySelector(".current-expression");
-  const resultElement = document.querySelector(".result");
-  if (elementExists(expressionElement, resultElement) === false) return;
-
   let currentExpression = expressionElement.innerText;
   const checkLastChar = currentExpression.at(-1);
-  if (currentExpression.length === 0 || checkLastChar.match(/[×÷+-]/)) return;
+  const resultElement = document.querySelector(".result");
 
+  if (!elementExists(expressionElement, resultElement)) return;
+  if (!currentExpression || checkLastChar.match(/[×÷+-]/)) return;
   const numberList = currentExpression.match(/[.\d.]+/g);
   const operatorList = currentExpression.match(/[×÷+-]/g);
   if (!operatorList) {
@@ -213,18 +200,22 @@ function calculateResult(e) {
   if (numberList.length === 1 && operatorList) {
     return;
   }
+  if (currentExpression.startsWith("-")) {
+    numberList.splice(0, 1, `-${numberList.at(0)}`);
+    operatorList.splice(0, 1);
+  }
 
   const calculator = document.querySelector(".calculator-container");
-  if (elementExists(calculator) === false) return;
+  if (!elementExists(calculator)) return;
   calculator.dataset.equalsPressed = "true";
 
   const deleteElement = document.querySelector("#delete");
-  if (elementExists(deleteElement) === false) return;
+  if (!elementExists(deleteElement)) return;
   deleteElement.removeEventListener("click", deleteLastCharacter);
 
   const opListLength = operatorList.length; //Need a constant length to run loop because opList is being spliced
   let total = 0;
-  for (let i = 0; i <= opListLength; i++) {
+  for (let i = 0; i < opListLength; i++) {
     if (operatorList.includes("÷") || operatorList.includes("×")) {
       total = evaluateNextOperation(operatorList, numberList, "÷", "×");
       if (total === null) return;
@@ -239,7 +230,7 @@ function calculateResult(e) {
   resultElement.innerText = rounded;
 }
 
-function createCalculator(rows = 4, cols = 4) {
+function createCalculator() {
   const body = document.querySelector("body");
   const calculatorCasing = document.createElement("div");
   const calculatorContainer = document.createElement("div");
@@ -251,13 +242,13 @@ function createCalculator(rows = 4, cols = 4) {
 
   calculatorCasing.className = "calculator-casing";
   calculatorContainer.className = "calculator-container";
-  // calculatorContainer.tabIndex = 0;
   calculatorContainer.dataset.equalsPressed = "false";
   calculatorDisplay.className = "display-container";
   expression.className = "current-expression";
   result.className = "result";
   result.innerText = "0";
   calculatorDisplay.append(expression, result);
+  buttonContainer.className = "button-container";
 
   const symbols = {
     "×": "multiplication",
@@ -320,7 +311,6 @@ function createCalculator(rows = 4, cols = 4) {
     buttonContainerFragment.appendChild(buttonRow);
   });
 
-  buttonContainer.className = "button-container";
   buttonContainer.appendChild(buttonContainerFragment);
   buttonContainer.addEventListener("click", handleButtonClick);
   calculatorContainer.append(calculatorDisplay, buttonContainer);
@@ -348,10 +338,10 @@ function createCalculator(rows = 4, cols = 4) {
       const key = e.key.toLowerCase();
       if (key === "backspace") {
         deleteLastCharacter();
-      } else if (key === "=" || key === "enter") {
+      } else if (["enter", "="].includes(key)) {
         e.preventDefault();
         calculateResult();
-      } else if (!isNaN(key) || ["+", "-", "*", "/"].includes(key)) {
+      } else if (!isNaN(key) || ["+", "-", "*", "/", "."].includes(key)) {
         handleButtonClick(keyObject.button(key));
       }
     }
@@ -359,12 +349,3 @@ function createCalculator(rows = 4, cols = 4) {
 }
 
 createCalculator();
-
-document.addEventListener("focusin", (e) => {
-  console.log("Focus changed to:", e.target);
-});
-
-window.addEventListener("keydown", (e) => {
-  console.log("Key pressed:", e.key, "Active element:", document.activeElement);
-  // rest of your handler
-});
