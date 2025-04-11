@@ -74,9 +74,6 @@ function isValid(currentButton, isEqualPressed, calculator) {
     } else if (currentButton.match(/[×÷+-]/)) {
       calculator.dataset.equalsPressed = "false";
     }
-    const deleteElement = document.querySelector("#delete");
-    if (!elementExists(deleteElement)) return;
-    deleteElement.addEventListener("click", deleteLastCharacter);
   }
 
   return true;
@@ -100,13 +97,16 @@ function resetCalculator(e) {
   const expressionElement = document.querySelector(".current-expression");
   const resultElement = document.querySelector(".result");
   const calculator = document.querySelector(".calculator-container");
-  if (!elementExists(expressionElement, resultElement, calculator)) {
+  const deleteElement = document.querySelector("#delete");
+  if (
+    !elementExists(expressionElement, resultElement, calculator, deleteElement)
+  ) {
     return;
-  } else {
-    expressionElement.innerText = "";
-    resultElement.innerText = "0";
-    calculator.dataset.equalsPressed = false;
   }
+
+  expressionElement.innerText = "";
+  resultElement.innerText = "0";
+  calculator.dataset.equalsPressed = "false";
 }
 
 function deleteLastCharacter(e) {
@@ -209,10 +209,6 @@ function calculateResult(e) {
   const calculator = document.querySelector(".calculator-container");
   if (!elementExists(calculator)) return;
   calculator.dataset.equalsPressed = "true";
-
-  const deleteElement = document.querySelector("#delete");
-  if (!elementExists(deleteElement)) return;
-  deleteElement.removeEventListener("click", deleteLastCharacter);
 
   const opListLength = operatorList.length; //Need a constant length to run loop because opList is being spliced
   let total = 0;
