@@ -285,23 +285,32 @@ function createCalculator() {
       button.id = symbols[buttonLabel];
       button.innerText = buttonLabel;
 
+      button.addEventListener("mousedown", () =>
+        button.classList.toggle("active-press")
+      );
+      button.addEventListener("mouseup", () => {
+        setTimeout(() => {
+          button.classList.toggle("active-press");
+        }, 150);
+      });
+
       if (buttonLabel.match(/[0-9]/)) {
-        button.className = "digit-button";
+        button.classList.add("digit-button");
       } else if (buttonLabel.match(/[×÷+-]/)) {
-        button.className = "operator-button";
+        button.classList.add("operator-button");
       } else if (buttonLabel === "=") {
-        button.className = "equals-button";
+        button.classList.add("equals-button");
         button.addEventListener("click", calculateResult);
       } else if (buttonLabel === "AC" || buttonLabel === "DEL") {
         if (buttonLabel === "AC") {
-          button.className = "clear-button";
+          button.classList.add("clear-button");
           button.addEventListener("click", resetCalculator);
         } else {
           button.addEventListener("click", deleteLastCharacter);
-          button.className = "delete-button";
+          button.classList.add("delete-button");
         }
       } else {
-        button.className = "misc";
+        button.classList.add("misc");
       }
       buttonRow.appendChild(button);
     });
